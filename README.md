@@ -202,7 +202,19 @@ docker run -d --name jenkins -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/je
 > docker run -d --name jenkins -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock jenkins-with-docker
 > ```
 
-### 🔍 Step 4: Verify Docker Inside Jenkins
+### 🔑 Step 4: Get Jenkins Admin Password
+
+After starting Jenkins, you need the initial admin password to unlock the UI:
+
+```bash
+docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+```
+
+Copy the output and paste it into the Jenkins setup wizard at [http://localhost:8080](http://localhost:8080).
+
+---
+
+### 🔍 Step 5: Verify Docker Inside Jenkins
 
 ```bash
 docker exec -it jenkins bash
@@ -215,7 +227,7 @@ docker --version
 
 ---
 
-### 📦 Step 5: Create a Pipeline Job in Jenkins
+### 📦 Step 6: Create a Pipeline Job in Jenkins
 
 1. Open Jenkins: [http://localhost:8080](http://localhost:8080)
 2. Click **New Item** → Enter name (e.g., `weather-api-pipeline`) → Select **Pipeline** → **OK**
