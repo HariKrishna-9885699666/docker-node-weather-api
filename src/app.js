@@ -57,7 +57,8 @@ function createApp(overrides = {}) {
       uptime: process.uptime(),
       timestamp: new Date().toISOString(),
       version: process.env.npm_package_version || null,
-      node: process.version
+      node: process.version,
+      mode: 'test',
     });
   });
 
