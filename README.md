@@ -119,133 +119,106 @@ docker run --name weather-api -p 3000:3000 --env-file .env weather-api:latest
 - Centralized safe error responses
 
 
-# Jenkins CI/CD Setup
 
-## Install Jenkins with Docker
+# Jenkins Docker Setup — Clean & Clear Steps
 
-```bash
-# Pull Jenkins LTS image
-docker pull jenkins/jenkins:lts
+## Let’s Fix It Cleanly (Step-by-Step, No Confusion)
 
-# Run Jenkins container (map port 8080 and 50000)
-docker run -d --name jenkins -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home jenkins/jenkins:lts
-```
+### 🔍 Step 1 — Check Which Image Jenkins Is Using
 
-## Get Jenkins initial admin password
+Run:
 
 ```bash
-docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+docker ps
 ```
 
-## Access Jenkins
-## Create and Configure a Jenkins Pipeline Job
+Look at the IMAGE column.
 
-1. Click "New Item" in the Jenkins dashboard.
-2. Enter a name for your job (e.g., "weather-api-pipeline").
-3. Select "Pipeline" and click OK.
-4. In the job configuration:
-  - Optionally add a description.
-  - Under "Pipeline" section, set "Definition" to "Pipeline script from SCM" if using a Jenkinsfile from your repo.
-  - Choose SCM as "Git" and enter your repository URL. (e.g., https://github.com/HariKrishna-9885699666/docker-node-weather-api)
-  - Set the branch to build (e.g., `*/main`).
-  - Set the "Script Path" to `Jenkinsfile` (default).
-  - Save the job.
-5. Click "Build Now" to run the pipeline.
+If you see:
 
-1. Open http://localhost:8080 in your browser
-2. Paste the initial admin password when prompted
-3. Install suggested plugins:
-  - Pipeline
-  - Git
-  - GitHub
-  - Docker Pipeline
-  - Blue Ocean
-  - Credentials Binding
-  - Workspace Cleanup
-  - NodeJS
-  - Email Extension
-  - Build Timeout
-  - SSH Agent
-  - Timestamper
-  - Matrix Authorization Strategy
-  - Lockable Resources
-  - Environment Injector
-  - (You can select "Install suggested plugins" or add these manually)
-4. Create your admin user
+    jenkins/jenkins:lts-jdk17
 
-## Example Jenkins Pipeline (Jenkinsfile)
+❌ That’s the default image (no Docker CLI)
 
-This repo includes a Jenkinsfile for Docker-based CI/CD:
+If you see:
 
-```groovy
-pipeline {
-  agent any
-  environment {
-    IMAGE_NAME = "weather-api"
-    CONTAINER_NAME = "weather-api"
-  }
-  stages {
-    stage('Checkout') {
-      steps { checkout scm }
-    }
-    stage('Build Docker Image') {
-      steps { sh "docker build -t ${IMAGE_NAME} ." }
-    }
-    stage('Stop Old Container') {
-      steps {
-        sh "docker stop ${CONTAINER_NAME} || true"
-        sh "docker rm ${CONTAINER_NAME} || true"
-      }
-    }
-    stage('Run Container') {
-      steps { sh "docker run -d -p 3000:3000 --name ${CONTAINER_NAME} ${IMAGE_NAME}" }
-    }
-  }
-}
+    jenkins-with-docker
+
+✅ That’s correct.
+
+---
+
+### 🛑 Step 2 — Stop & Remove Current Jenkins
+
+```bash
+docker stop jenkins
+docker rm jenkins
+```
+
+Confirm it's gone:
+
+```bash
+docker ps
 ```
 
 ---
 
-## Commands Used in This Project
+### 🏗 Step 3 — Build Custom Jenkins Image (If Not Already)
 
-### Node/Yarn
-- `corepack yarn install` — Install dependencies
-- `corepack yarn dev` — Start in development mode
-- `corepack yarn start` — Start in production mode
-- `corepack yarn test` — Run tests
+Make sure you are inside your `jenkins-docker` folder.
 
-### Docker
-- `docker build -t weather-api:latest .` — Build Docker image
-- `docker run --name weather-api -p 3000:3000 --env-file .env weather-api:latest` — Run container
-- `docker logs -f weather-api` — View logs
-- `docker stop weather-api` — Stop container
-- `docker rm weather-api` — Remove container
-- `docker rm -f weather-api` — Force remove container
+**Dockerfile should be:**
 
-### Jenkins
-- `docker pull jenkins/jenkins:lts` — Pull Jenkins image
-- `docker run -d --name jenkins -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home jenkins/jenkins:lts` — Run Jenkins
-- `docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword` — Get Jenkins admin password
+```Dockerfile
+FROM jenkins/jenkins:lts-jdk17
 
+USER root
 
-# Jenkins Docker Troubleshooting
+RUN apt-get update && \
+    apt-get install -y docker.io && \
+    apt-get clean
 
-If you see errors like `docker: not found` or pipeline steps fail with exit code 127, Jenkins does not have access to Docker.
+RUN usermod -aG docker jenkins
 
-## Solution: Run Jenkins with Docker Socket
-
-Run Jenkins container with access to the host's Docker daemon:
-
-```bash
-docker run -d --name jenkins -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock jenkins/jenkins:lts
+USER jenkins
 ```
 
-This mounts the Docker socket, allowing Jenkins to run Docker commands on the host.
+Now build:
 
-## Alternative: Use Jenkins Agent with Docker Installed
+```bash
+docker build -t jenkins-with-docker .
+```
 
-You can also use a Jenkins agent (node/slave) with Docker installed for pipeline builds.
+Wait until build completes successfully.
 
 ---
 
-**Note:** After changing how Jenkins runs, restart the container and reconfigure your pipeline job if needed.
+### 🚀 Step 4 — Run Jenkins Using Custom Image
+
+**IMPORTANT:** Use `jenkins-with-docker`, not default image.
+
+```bash
+docker run -d \
+  --name jenkins \
+  -p 8080:8080 -p 50000:50000 \
+  -v jenkins_home:/var/jenkins_home \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  jenkins-with-docker
+```
+
+---
+
+### 🔍 Step 5 — Verify Again
+
+Now check:
+
+```bash
+docker exec -it jenkins bash
+docker --version
+```
+
+You should see something like:
+
+    Docker version 24.x.x
+
+If yes → 🎉 fixed permanently.
