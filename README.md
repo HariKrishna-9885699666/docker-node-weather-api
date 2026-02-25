@@ -213,7 +213,7 @@ Copy the output and paste it into the Jenkins setup wizard at [http://localhost:
 
 ---
 
-### 🔍 Step 5: Verify Docker Inside Jenkins
+### 🔍 Step 5: Verify Docker Inside Jenkins Container
 
 ```bash
 docker exec -it jenkins bash
