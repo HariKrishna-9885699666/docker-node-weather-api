@@ -428,3 +428,201 @@ MIT © [Hari Krishna Anem](https://github.com/HariKrishna-9885699666)
 > - Add `.dockerignore` to reduce image size & improve build speed
 > - Use Jenkins Blue Ocean UI for visual pipeline debugging
 > - Rotate `WEATHER_API_KEY` periodically and store in Jenkins Credentials
+
+
+Based on the README, here's the complete detailed sequence — including what happens once deployment starts:
+
+---
+
+## 1. 🏗️ Project Foundation
+
+**Clean Architecture Node.js + Express app** is set up with the following layer structure:
+
+- `clients/` → talks to the external OpenWeatherMap API
+- `config/` → loads and validates environment variables
+- `validators/` → Zod schemas that sanitize and validate incoming request data
+- `middlewares/` → reusable middleware (validation, error handling)
+- `routes/` → defines API endpoints
+- `controllers/` → handles HTTP request/response cycle
+- `services/` → contains core business logic
+- `errors/` → custom error classes and a centralized error handler
+- `logger/` → structured logging with sensitive field redaction
+- `app.js` → ties everything together as the entry point
+
+**Request flow:** `Request → Route → Validator → Controller → Service → Client → Response`, with middleware running alongside for auth, logging, and error handling.
+
+---
+
+## 2. 🔐 Security Layer
+
+Applied before any request reaches business logic:
+
+- **Helmet** — sets secure HTTP headers
+- **Rate Limiting** — `express-rate-limit` caps at 100 requests per 15 minutes per client
+- **Zod Input Validation** — all incoming query params/body are validated and sanitized
+- **Secret Management** — API keys and secrets live only in `.env`, never committed to source control
+- **Log Redaction** — sensitive fields are masked before being written to logs
+- **Centralized Error Handler** — catches all errors; strips stack traces in production before responding
+
+---
+
+## 3. 🌤️ API Endpoints
+
+Two endpoints are exposed:
+
+- `GET /health` — health check, used by Docker and monitoring tools
+- `GET /api/v1/weather?city={city}` — fetches weather data for a given city from OpenWeatherMap
+
+---
+
+## 4. 🐳 Dockerization of the App
+
+The weather API is containerized:
+
+- A `Dockerfile` builds the app image (`weather-api:latest`)
+- The app listens on port `3000` inside the container
+- Secrets are injected at runtime via `--env-file .env` or `-e` flags — never baked into the image
+- A `.dockerignore` is recommended to keep the image lean
+- Port remapping is supported (e.g., `-p 8080:3000`) if port 3000 is occupied
+
+---
+
+## 5. 🔧 Jenkins Setup (Docker-in-Docker)
+
+Jenkins itself is containerized with Docker CLI access:
+
+1. **Custom Jenkins image** is built from `jenkins/jenkins:lts-jdk17`, with `docker.io` installed and the `jenkins` user added to the `docker` group
+2. **Jenkins container** is launched with:
+   - Ports `8080` (UI) and `50000` (agent) exposed
+   - `jenkins_home` volume for persistence
+   - `/var/run/docker.sock` mounted so Jenkins can control the host Docker daemon
+3. **Initial admin password** is retrieved from inside the container to unlock the Jenkins UI
+4. **Docker access is verified** inside the Jenkins container before proceeding
+
+---
+
+## 6. 📦 Jenkins Pipeline Job — Stage by Stage
+
+A declarative `Jenkinsfile` pipeline is configured with these sequential stages:
+
+### Stage 1 — Checkout
+- Jenkins pulls the latest code from the Git repository on the `*/main` branch
+- The full source code is now available in the Jenkins workspace
+
+### Stage 2 — Install Dependencies
+- `corepack yarn install` is executed
+- All Node.js packages defined in `package.json` are downloaded and installed into `node_modules`
+- If this fails, the pipeline stops immediately
+
+### Stage 3 — Lint & Test
+- `yarn lint` runs first — checks code style and formatting rules (ESLint + Prettier)
+- `yarn test` runs next — executes unit and integration test suites
+- If either command fails, the pipeline halts and triggers the `failure` post action
+- Code only proceeds if both pass cleanly
+
+### Stage 4 — Build Docker Image
+- Jenkins calls `docker.build(...)` using the `Dockerfile` in the repo root
+- The image is tagged as `your-registry.io/weather-api:{BUILD_NUMBER}` where `BUILD_NUMBER` is the Jenkins build counter (e.g., `weather-api:42`)
+- This creates a fresh, immutable, versioned image of the application
+
+### Stage 5 — Push Image *(runs only on `main` branch)*
+- Jenkins authenticates to the Docker registry using credentials stored in **Jenkins Credentials Manager** (`docker-credentials-id`)
+- The build-numbered image (`weather-api:42`) is pushed to the registry
+- The same image is also tagged and pushed as `latest` — so it becomes the default pull target
+- After this step, the image is available to any server or environment that has registry access
+
+### Stage 6 — Deploy *(runs only on `main` branch)*
+
+This is where the actual deployment happens. The following sequence executes on the host machine via shell:
+
+```
+1. docker stop weather-api   → Gracefully stops the currently running container (if any)
+                               If no container exists, the || true prevents a pipeline failure
+
+2. docker rm weather-api     → Removes the stopped container to free the name and resources
+                               Again, || true guards against "container not found" errors
+
+3. docker run -d             → Starts a brand new container in detached (background) mode
+   --name weather-api        → Names it "weather-api" for easy reference
+   -p 3000:3000              → Maps host port 3000 to container port 3000
+   --env-file .env           → Injects all environment variables (including WEATHER_API_KEY)
+                               from the .env file — secrets never hardcoded
+   ${REGISTRY}/${IMAGE}:${TAG} → Pulls and runs the exact versioned image just pushed
+```
+
+**At this point the new version of the app is live and serving traffic on port 3000.**
+
+---
+
+## 7. 🏁 Post-Deployment Actions
+
+Regardless of what happened during the pipeline, these always run:
+
+| Outcome | What happens |
+|---|---|
+| **Always** | `cleanWs()` — Jenkins cleans up the workspace, deleting all checked-out files and build artifacts to free disk space |
+| **On Failure** | Logs `❌ Pipeline failed. Check the logs.` — signals the team to investigate |
+| **On Success** | Logs `✅ Deployment successful!` — confirms the new version is deployed and running |
+
+---
+
+## 8. 🔄 What the Running Container Looks Like Post-Deployment
+
+Once the `docker run` completes successfully:
+
+- The Express app starts inside the container and binds to port `3000`
+- `NODE_ENV`, `WEATHER_API_KEY`, `PORT`, and `LOG_LEVEL` are all loaded from the injected `.env`
+- Helmet and rate limiting middleware are active and protecting all routes
+- `/health` endpoint is live — can be polled by load balancers or uptime monitors
+- `/api/v1/weather?city={}` is live and ready to serve weather data
+- Logs are being written with sensitive fields redacted
+- Stack traces are suppressed in production error responses
+
+---
+
+## 9. 🧪 Testing
+
+Three test categories are implemented:
+
+- **Unit tests** (`tests/unit/`) — cover services and validators in isolation
+- **Integration tests** (`tests/integration/`) — test full API endpoints using `supertest`
+- **Fixtures** (`tests/fixtures/`) — shared mock data and helpers
+
+Test commands support standard run, coverage report, and watch mode for development.
+
+---
+
+## 10. ⚙️ Configuration via Environment Variables
+
+Four environment variables control runtime behavior:
+
+| Variable | Role |
+|---|---|
+| `WEATHER_API_KEY` | Authenticates requests to OpenWeatherMap (required) |
+| `PORT` | Controls which port the server binds to (default: 3000) |
+| `NODE_ENV` | Switches between development and production behavior |
+| `LOG_LEVEL` | Controls logging verbosity (info / debug / error) |
+
+---
+
+## 🔁 Full End-to-End Summary
+
+```
+Code Push to main
+      ↓
+Jenkins detects change → Checkout code
+      ↓
+Install dependencies (yarn install)
+      ↓
+Lint + Test (must both pass)
+      ↓
+Build Docker image (tagged with build number)
+      ↓
+Push image to registry (versioned + latest)
+      ↓
+Stop old container → Remove old container → Start new container
+      ↓
+App is live on port 3000 with secrets injected, security active
+      ↓
+Workspace cleaned → Success/Failure notification logged
+```
