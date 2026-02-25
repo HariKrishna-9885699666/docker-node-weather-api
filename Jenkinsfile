@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         IMAGE_NAME = "weather-api"
-        CONTAINER_NAME = "weather-api-container"
+        CONTAINER_NAME = "weather-api"
     }
 
     stages {
