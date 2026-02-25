@@ -428,5 +428,3 @@ MIT © [Hari Krishna Anem](https://github.com/HariKrishna-9885699666)
 > - Add `.dockerignore` to reduce image size & improve build speed
 > - Use Jenkins Blue Ocean UI for visual pipeline debugging
 > - Rotate `WEATHER_API_KEY` periodically and store in Jenkins Credentials
-
-[⬆️ Back to Top](#-weather-api-service--jenkins-cicd)
