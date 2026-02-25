@@ -138,6 +138,19 @@ docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
 ```
 
 ## Access Jenkins
+## Create and Configure a Jenkins Pipeline Job
+
+1. Click "New Item" in the Jenkins dashboard.
+2. Enter a name for your job (e.g., "weather-api-pipeline").
+3. Select "Pipeline" and click OK.
+4. In the job configuration:
+  - Optionally add a description.
+  - Under "Pipeline" section, set "Definition" to "Pipeline script from SCM" if using a Jenkinsfile from your repo.
+  - Choose "Git" and enter your repository URL.
+  - Set the branch to build (e.g., `main`).
+  - Set the "Script Path" to `Jenkinsfile` (default).
+  - Save the job.
+5. Click "Build Now" to run the pipeline.
 
 1. Open http://localhost:8080 in your browser
 2. Paste the initial admin password when prompted
