@@ -119,9 +119,80 @@ docker run --name weather-api -p 3000:3000 --env-file .env weather-api:latest
 - Centralized safe error responses
 
 
+# Jenkins CI/CD Setup
 
+## Install Jenkins with Docker
 
-# To create jenkins pwd
+```bash
+# Pull Jenkins LTS image
+docker pull jenkins/jenkins:lts
+
+# Run Jenkins container (map port 8080 and 50000)
+docker run -d --name jenkins -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home jenkins/jenkins:lts
+```
+
+## Get Jenkins initial admin password
+
 ```bash
 docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
 ```
+
+## Access Jenkins
+
+- Open http://localhost:8080 in your browser
+- Paste the initial admin password when prompted
+- Install suggested plugins and create your admin user
+
+## Example Jenkins Pipeline (Jenkinsfile)
+
+This repo includes a Jenkinsfile for Docker-based CI/CD:
+
+```groovy
+pipeline {
+  agent any
+  environment {
+    IMAGE_NAME = "weather-api"
+    CONTAINER_NAME = "weather-api"
+  }
+  stages {
+    stage('Checkout') {
+      steps { checkout scm }
+    }
+    stage('Build Docker Image') {
+      steps { sh "docker build -t ${IMAGE_NAME} ." }
+    }
+    stage('Stop Old Container') {
+      steps {
+        sh "docker stop ${CONTAINER_NAME} || true"
+        sh "docker rm ${CONTAINER_NAME} || true"
+      }
+    }
+    stage('Run Container') {
+      steps { sh "docker run -d -p 3000:3000 --name ${CONTAINER_NAME} ${IMAGE_NAME}" }
+    }
+  }
+}
+```
+
+---
+
+## Commands Used in This Project
+
+### Node/Yarn
+- `corepack yarn install` — Install dependencies
+- `corepack yarn dev` — Start in development mode
+- `corepack yarn start` — Start in production mode
+- `corepack yarn test` — Run tests
+
+### Docker
+- `docker build -t weather-api:latest .` — Build Docker image
+- `docker run --name weather-api -p 3000:3000 --env-file .env weather-api:latest` — Run container
+- `docker logs -f weather-api` — View logs
+- `docker stop weather-api` — Stop container
+- `docker rm weather-api` — Remove container
+- `docker rm -f weather-api` — Force remove container
+
+### Jenkins
+- `docker pull jenkins/jenkins:lts` — Pull Jenkins image
+- `docker run -d --name jenkins -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home jenkins/jenkins:lts` — Run Jenkins
+- `docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword` — Get Jenkins admin password
