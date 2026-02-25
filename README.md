@@ -87,10 +87,7 @@ docker build -t weather-api:latest .
 ### Run with Environment File
 
 ```bash
-docker run --name weather-api \
-  -p 3000:3000 \
-  --env-file .env \
-  weather-api:latest
+docker run --name weather-api -p 3000:3000 --env-file .env weather-api:latest
 ```
 
 > **Note for Windows users:**
@@ -103,10 +100,7 @@ docker run --name weather-api \
 ### Run with Inline Env Vars
 
 ```bash
-docker run --name weather-api \
-  -p 3000:3000 \
-  -e WEATHER_API_KEY=your_key_here \
-  weather-api:latest
+docker run --name weather-api -p 3000:3000 -e WEATHER_API_KEY=your_key_here weather-api:latest
 ```
 
 > **Note for Windows users:**
@@ -198,12 +192,7 @@ docker build -t jenkins-with-docker .
 ### 🚀 Step 3: Run Jenkins Container
 
 ```bash
-docker run -d \
-  --name jenkins \
-  -p 8080:8080 -p 50000:50000 \
-  -v jenkins_home:/var/jenkins_home \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  jenkins-with-docker
+docker run -d --name jenkins -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock jenkins-with-docker
 ```
 
 > **Note for Windows users:**
@@ -303,10 +292,7 @@ pipeline {
                 sh '''
                     docker stop weather-api || true
                     docker rm weather-api || true
-                    docker run -d --name weather-api \\
-                      -p 3000:3000 \\
-                      --env-file .env \\
-                      ${REGISTRY}/${IMAGE}:${TAG}
+                    docker run -d --name weather-api -p 3000:3000 --env-file .env ${REGISTRY}/${IMAGE}:${TAG}
                 '''
             }
         }
