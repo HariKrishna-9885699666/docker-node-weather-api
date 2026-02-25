@@ -37,7 +37,7 @@ Minimal stateless Node.js + Express weather API following clean architecture and
 ## Setup
 
 1. Copy `.env.example` to `.env`
-2. Set `WEATHER_API_KEY` with your provider key
+2. Set `WEATHER_API_KEY` with your provider key (get a free key from https://openweathermap.org/api)
 3. Install deps:
    - `corepack yarn install`
 4. Run:
@@ -117,3 +117,11 @@ docker run --name weather-api -p 3000:3000 --env-file .env weather-api:latest
 - Env-based API key handling
 - Sensitive value redaction in logs
 - Centralized safe error responses
+
+
+
+
+# To create jenkins pwd
+```bash
+docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+```

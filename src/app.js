@@ -51,7 +51,14 @@ function createApp(overrides = {}) {
   );
 
   app.get("/health", (_req, res) => {
-    res.status(200).json({ status: "ok", env: config.env });
+    res.status(200).json({
+      status: "ok",
+      env: config.env,
+      uptime: process.uptime(),
+      timestamp: new Date().toISOString(),
+      version: process.env.npm_package_version || null,
+      node: process.version
+    });
   });
 
   app.use("/api/v1/weather", createWeatherRoutes(container));
