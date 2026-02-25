@@ -1,4 +1,3 @@
-```markdown
 # 🌤️ Weather API Service + Jenkins CI/CD
 
 > Minimal stateless Node.js + Express weather API following Clean Architecture and SOLID/DRY/KISS principles, with Dockerized Jenkins pipeline automation.
@@ -412,4 +411,3 @@ MIT © [Hari Krishna Anem](https://github.com/HariKrishna-9885699666)
 > - Rotate `WEATHER_API_KEY` periodically and store in Jenkins Credentials
 
 [⬆️ Back to Top](#-weather-api-service--jenkins-cicd)
-```
