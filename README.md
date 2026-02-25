@@ -237,11 +237,7 @@ If you see errors like `docker: not found` or pipeline steps fail with exit code
 Run Jenkins container with access to the host's Docker daemon:
 
 ```bash
-docker run -d --name jenkins \
-  -p 8080:8080 -p 50000:50000 \
-  -v jenkins_home:/var/jenkins_home \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  jenkins/jenkins:lts
+docker run -d --name jenkins -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock jenkins/jenkins:lts
 ```
 
 This mounts the Docker socket, allowing Jenkins to run Docker commands on the host.
