@@ -139,9 +139,26 @@ docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
 
 ## Access Jenkins
 
-- Open http://localhost:8080 in your browser
-- Paste the initial admin password when prompted
-- Install suggested plugins and create your admin user
+1. Open http://localhost:8080 in your browser
+2. Paste the initial admin password when prompted
+3. Install suggested plugins:
+  - Pipeline
+  - Git
+  - GitHub
+  - Docker Pipeline
+  - Blue Ocean
+  - Credentials Binding
+  - Workspace Cleanup
+  - NodeJS
+  - Email Extension
+  - Build Timeout
+  - SSH Agent
+  - Timestamper
+  - Matrix Authorization Strategy
+  - Lockable Resources
+  - Environment Injector
+  - (You can select "Install suggested plugins" or add these manually)
+4. Create your admin user
 
 ## Example Jenkins Pipeline (Jenkinsfile)
 
