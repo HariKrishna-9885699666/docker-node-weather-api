@@ -429,8 +429,7 @@ MIT © [Hari Krishna Anem](https://github.com/HariKrishna-9885699666)
 > - Use Jenkins Blue Ocean UI for visual pipeline debugging
 > - Rotate `WEATHER_API_KEY` periodically and store in Jenkins Credentials
 
-
-##Complete detailed sequence — including what happens once deployment starts:
+## Complete detailed sequence — including what happens once deployment starts:
 
 ---
 
