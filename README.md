@@ -1,28 +1,3 @@
-# Jenkins Docker Troubleshooting
-
-If you see errors like `docker: not found` or pipeline steps fail with exit code 127, Jenkins does not have access to Docker.
-
-## Solution: Run Jenkins with Docker Socket
-
-Run Jenkins container with access to the host's Docker daemon:
-
-```bash
-docker run -d --name jenkins \
-  -p 8080:8080 -p 50000:50000 \
-  -v jenkins_home:/var/jenkins_home \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  jenkins/jenkins:lts
-```
-
-This mounts the Docker socket, allowing Jenkins to run Docker commands on the host.
-
-## Alternative: Use Jenkins Agent with Docker Installed
-
-You can also use a Jenkins agent (node/slave) with Docker installed for pipeline builds.
-
----
-
-**Note:** After changing how Jenkins runs, restart the container and reconfigure your pipeline job if needed.
 # Weather API Service
 
 Minimal stateless Node.js + Express weather API following clean architecture and SOLID/DRY/KISS principles.
@@ -251,3 +226,30 @@ pipeline {
 - `docker pull jenkins/jenkins:lts` — Pull Jenkins image
 - `docker run -d --name jenkins -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home jenkins/jenkins:lts` — Run Jenkins
 - `docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword` — Get Jenkins admin password
+
+
+# Jenkins Docker Troubleshooting
+
+If you see errors like `docker: not found` or pipeline steps fail with exit code 127, Jenkins does not have access to Docker.
+
+## Solution: Run Jenkins with Docker Socket
+
+Run Jenkins container with access to the host's Docker daemon:
+
+```bash
+docker run -d --name jenkins \
+  -p 8080:8080 -p 50000:50000 \
+  -v jenkins_home:/var/jenkins_home \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  jenkins/jenkins:lts
+```
+
+This mounts the Docker socket, allowing Jenkins to run Docker commands on the host.
+
+## Alternative: Use Jenkins Agent with Docker Installed
+
+You can also use a Jenkins agent (node/slave) with Docker installed for pipeline builds.
+
+---
+
+**Note:** After changing how Jenkins runs, restart the container and reconfigure your pipeline job if needed.
