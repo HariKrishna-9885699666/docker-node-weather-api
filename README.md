@@ -430,7 +430,7 @@ MIT © [Hari Krishna Anem](https://github.com/HariKrishna-9885699666)
 > - Rotate `WEATHER_API_KEY` periodically and store in Jenkins Credentials
 
 
-Based on the README, here's the complete detailed sequence — including what happens once deployment starts:
+###Complete detailed sequence — including what happens once deployment starts:
 
 ---
 
