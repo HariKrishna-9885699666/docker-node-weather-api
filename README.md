@@ -1,12 +1,17 @@
+````markdown
 # Weather API Service
 
 Minimal stateless Node.js + Express weather API following clean architecture and SOLID/DRY/KISS principles.
 
-## Endpoint
+---
+
+## 📌 Endpoint
 
 - `GET /api/v1/weather?city=<city_name>`
 
-## Example response
+---
+
+## 📦 Example Response
 
 ```json
 {
@@ -32,28 +37,63 @@ Minimal stateless Node.js + Express weather API following clean architecture and
     "fetchedAt": "2026-02-12T00:00:00.000Z"
   }
 }
-```
+````
 
-## Setup
+---
+
+# 🛠 Setup (Local Development)
+
+## 1️⃣ Environment Setup
 
 1. Copy `.env.example` to `.env`
-2. Set `WEATHER_API_KEY` with your provider key (get a free key from https://openweathermap.org/api)
-3. Install deps:
-   - `corepack yarn install`
-4. Run:
-   - Dev: `corepack yarn dev`
-   - Prod: `corepack yarn start`
-   - Tests: `corepack yarn test`
+2. Set `WEATHER_API_KEY` with your provider key
+   (Get a free key from [https://openweathermap.org/api](https://openweathermap.org/api))
 
-## Docker
+---
 
-### 1) Build image
+## 2️⃣ Install Dependencies (Yarn 4)
+
+```bash
+corepack enable
+corepack prepare yarn@4.12.0 --activate
+yarn install
+```
+
+---
+
+## 3️⃣ Run Application
+
+Development:
+
+```bash
+yarn dev
+```
+
+Production:
+
+```bash
+yarn start
+```
+
+Run tests:
+
+```bash
+yarn test
+```
+
+---
+
+# 🐳 Docker
+
+## 1) Build Image
 
 ```bash
 docker build -t weather-api:latest .
 ```
 
-### 2) Run container with env file
+---
+
+## 2) Run Container with Env File
 
 Make sure your `.env` exists and has a valid `WEATHER_API_KEY`.
 
@@ -61,27 +101,35 @@ Make sure your `.env` exists and has a valid `WEATHER_API_KEY`.
 docker run --name weather-api -p 3000:3000 --env-file .env weather-api:latest
 ```
 
-### 3) Verify APIs
+---
+
+## 3) Verify APIs
 
 ```bash
 curl "http://localhost:3000/health"
 curl "http://localhost:3000/api/v1/weather?city=London"
 ```
 
-### 4) View logs
+---
+
+## 4) View Logs
 
 ```bash
 docker logs -f weather-api
 ```
 
-### 5) Stop and remove container
+---
+
+## 5) Stop and Remove Container
 
 ```bash
 docker stop weather-api
 docker rm weather-api
 ```
 
-### 6) Rebuild after code changes
+---
+
+## 6) Rebuild After Code Changes
 
 ```bash
 docker rm -f weather-api
@@ -89,42 +137,64 @@ docker build --no-cache -t weather-api:latest .
 docker run --name weather-api -p 3000:3000 --env-file .env weather-api:latest
 ```
 
-### Docker notes
+---
 
-- The app listens on port `3000` inside the container.
-- Do not bake secrets into the image; always pass via `--env-file` or `-e`.
-- If you get `WEATHER_PROVIDER_AUTH_ERROR`, rotate/replace `WEATHER_API_KEY` and rerun the container.
-- If port `3000` is busy locally, map another port (example: `-p 8080:3000`) and use `http://localhost:8080`.
-- If you get `Cannot find module 'express'`, rebuild with `--no-cache` (old image layers may not include installed modules).
+## Docker Notes
 
-## Architecture
+* The app listens on port `3000` inside the container.
+* Do not bake secrets into the image; always pass via `--env-file` or `-e`.
+* If you get `WEATHER_PROVIDER_AUTH_ERROR`, rotate/replace `WEATHER_API_KEY` and rerun the container.
+* If port `3000` is busy locally, map another port:
 
-- `src/routes`: HTTP route definitions
-- `src/controllers`: Request/response orchestration
-- `src/services`: Business logic
-- `src/clients`: External provider integration
-- `src/validators`: Input validation schemas
-- `src/middlewares`: Reusable middleware (validation, etc.)
-- `src/config`: Environment/config-driven settings
-- `src/errors`: App error types + centralized error handling
-- `src/logger`: Structured logging
+  ```
+  -p 8080:3000
+  ```
 
-## Security
+  Then use `http://localhost:8080`.
+* If you get `Cannot find module 'express'`, rebuild with `--no-cache`.
 
-- Helmet secure headers
-- Rate limiting
-- Input validation and sanitization via Zod
-- Env-based API key handling
-- Sensitive value redaction in logs
-- Centralized safe error responses
+---
 
+# 🏗 Architecture
 
+* `src/routes` → HTTP route definitions
+* `src/controllers` → Request/response orchestration
+* `src/services` → Business logic
+* `src/clients` → External provider integration
+* `src/validators` → Input validation schemas
+* `src/middlewares` → Reusable middleware
+* `src/config` → Environment configuration
+* `src/errors` → Centralized error handling
+* `src/logger` → Structured logging
+
+---
+
+# 🔐 Security
+
+* Helmet secure headers
+* Rate limiting
+* Input validation and sanitization via Zod
+* Environment-based API key handling
+* Sensitive value redaction in logs
+* Centralized safe error responses
+
+---
+
+# 🚀 Jenkins + Docker CI/CD Setup (Local)
+
+This project supports a fully local CI/CD setup using:
+
+* Jenkins (running inside Docker)
+* Docker Engine
+* GitHub Repository
+
+---
 
 # Jenkins Docker Setup — Clean & Clear Steps
 
-## Let’s Fix It Cleanly (Step-by-Step, No Confusion)
+---
 
-### 🔍 Step 1 — Check Which Image Jenkins Is Using
+## 🔍 Step 1 — Check Which Image Jenkins Is Using
 
 Run:
 
@@ -136,19 +206,23 @@ Look at the IMAGE column.
 
 If you see:
 
-    jenkins/jenkins:lts-jdk17
+```
+jenkins/jenkins:lts-jdk17
+```
 
 ❌ That’s the default image (no Docker CLI)
 
 If you see:
 
-    jenkins-with-docker
+```
+jenkins-with-docker
+```
 
 ✅ That’s correct.
 
 ---
 
-### 🛑 Step 2 — Stop & Remove Current Jenkins
+## 🛑 Step 2 — Stop & Remove Current Jenkins
 
 ```bash
 docker stop jenkins
@@ -163,11 +237,15 @@ docker ps
 
 ---
 
-### 🏗 Step 3 — Build Custom Jenkins Image (If Not Already)
+## 🏗 Step 3 — Build Custom Jenkins Image
 
-Make sure you are inside your `jenkins-docker` folder.
+Create a folder named:
 
-**Dockerfile should be:**
+```
+jenkins-docker
+```
+
+Inside it create a `Dockerfile`:
 
 ```Dockerfile
 FROM jenkins/jenkins:lts-jdk17
@@ -183,19 +261,15 @@ RUN usermod -aG docker jenkins
 USER jenkins
 ```
 
-Now build:
+Build image:
 
 ```bash
 docker build -t jenkins-with-docker .
 ```
 
-Wait until build completes successfully.
-
 ---
 
-### 🚀 Step 4 — Run Jenkins Using Custom Image
-
-**IMPORTANT:** Use `jenkins-with-docker`, not default image.
+## 🚀 Step 4 — Run Jenkins Using Custom Image
 
 ```bash
 docker run -d \
@@ -208,17 +282,133 @@ docker run -d \
 
 ---
 
-### 🔍 Step 5 — Verify Again
+## 🔐 Get Jenkins Initial Password
 
-Now check:
+```bash
+docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+```
+
+Open:
+
+```
+http://localhost:8080
+```
+
+Install suggested plugins.
+
+---
+
+## 🏗 Create Pipeline Job
+
+1. Click **New Item**
+2. Name: `weather-api-pipeline`
+3. Select **Pipeline**
+4. Choose **Pipeline script from SCM**
+5. SCM: Git
+6. Repository:
+
+   ```
+   https://github.com/HariKrishna-9885699666/docker-node-weather-api.git
+   ```
+7. Branch:
+
+   ```
+   */main
+   ```
+
+Save.
+
+---
+
+## 📄 Jenkinsfile
+
+Ensure the repo contains:
+
+```groovy
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = "weather-api"
+        CONTAINER_NAME = "weather-api"
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh "docker build -t ${IMAGE_NAME} ."
+            }
+        }
+
+        stage('Stop Old Container') {
+            steps {
+                sh "docker stop ${CONTAINER_NAME} || true"
+                sh "docker rm ${CONTAINER_NAME} || true"
+            }
+        }
+
+        stage('Run Container') {
+            steps {
+                sh "docker run -d -p 3000:3000 --env-file .env --name ${CONTAINER_NAME} ${IMAGE_NAME}"
+            }
+        }
+    }
+}
+```
+
+---
+
+## 🔍 Step 5 — Verify Docker Inside Jenkins
 
 ```bash
 docker exec -it jenkins bash
 docker --version
 ```
 
-You should see something like:
+You should see:
 
-    Docker version 24.x.x
+```
+Docker version 24.x.x
+```
 
-If yes → 🎉 fixed permanently.
+If yes → ✅ Jenkins is correctly configured.
+
+---
+
+# 🔄 CI/CD Flow
+
+```
+GitHub Push
+      ↓
+Jenkins Checkout
+      ↓
+Docker Build
+      ↓
+Stop Old Container
+      ↓
+Run New Container
+```
+
+---
+
+# ✅ Summary
+
+This setup provides:
+
+* Yarn 4 based Node.js application
+* Docker containerization
+* Jenkins running in Docker
+* Automated local CI/CD pipeline
+* Fully reproducible local DevOps workflow
+
+```
+
+---
+```
