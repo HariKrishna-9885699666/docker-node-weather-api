@@ -1,3 +1,28 @@
+# Jenkins Docker Troubleshooting
+
+If you see errors like `docker: not found` or pipeline steps fail with exit code 127, Jenkins does not have access to Docker.
+
+## Solution: Run Jenkins with Docker Socket
+
+Run Jenkins container with access to the host's Docker daemon:
+
+```bash
+docker run -d --name jenkins \
+  -p 8080:8080 -p 50000:50000 \
+  -v jenkins_home:/var/jenkins_home \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  jenkins/jenkins:lts
+```
+
+This mounts the Docker socket, allowing Jenkins to run Docker commands on the host.
+
+## Alternative: Use Jenkins Agent with Docker Installed
+
+You can also use a Jenkins agent (node/slave) with Docker installed for pipeline builds.
+
+---
+
+**Note:** After changing how Jenkins runs, restart the container and reconfigure your pipeline job if needed.
 # Weather API Service
 
 Minimal stateless Node.js + Express weather API following clean architecture and SOLID/DRY/KISS principles.
@@ -146,8 +171,8 @@ docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
 4. In the job configuration:
   - Optionally add a description.
   - Under "Pipeline" section, set "Definition" to "Pipeline script from SCM" if using a Jenkinsfile from your repo.
-  - Choose "Git" and enter your repository URL.
-  - Set the branch to build (e.g., `main`).
+  - Choose SCM as "Git" and enter your repository URL. (e.g., https://github.com/HariKrishna-9885699666/docker-node-weather-api)
+  - Set the branch to build (e.g., `*/main`).
   - Set the "Script Path" to `Jenkinsfile` (default).
   - Save the job.
 5. Click "Build Now" to run the pipeline.
