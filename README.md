@@ -93,6 +93,13 @@ docker run --name weather-api \
   weather-api:latest
 ```
 
+> **Note for Windows users:**
+> If you see a multiline command with backslashes (\) in this README, copy and paste it as a single line in PowerShell or CMD. For example:
+>
+> ```sh
+> docker run --name weather-api -p 3000:3000 --env-file .env weather-api:latest
+> ```
+
 ### Run with Inline Env Vars
 
 ```bash
@@ -101,6 +108,13 @@ docker run --name weather-api \
   -e WEATHER_API_KEY=your_key_here \
   weather-api:latest
 ```
+
+> **Note for Windows users:**
+> Combine the above into a single line when running in PowerShell or CMD:
+>
+> ```sh
+> docker run --name weather-api -p 3000:3000 -e WEATHER_API_KEY=your_key_here weather-api:latest
+> ```
 
 ### Verify & Test
 
@@ -191,6 +205,13 @@ docker run -d \
   -v /var/run/docker.sock:/var/run/docker.sock \
   jenkins-with-docker
 ```
+
+> **Note for Windows users:**
+> Combine the above into a single line when running in PowerShell or CMD:
+>
+> ```sh
+> docker run -d --name jenkins -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock jenkins-with-docker
+> ```
 
 ### 🔍 Step 4: Verify Docker Inside Jenkins
 
